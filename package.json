@@ -1,0 +1,27 @@
+{
+  "name": "rest-login",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "jest --coverage",
+    "dev": "nodemon src/app.js --ignore __tests__",
+    "start": "node src/app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.20.0",
+    "cors": "^2.8.5",
+    "date-fns": "^2.16.1",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "jest": "^26.5.3",
+    "jsonwebtoken": "^8.5.1",
+    "mysql": "^2.18.1",
+    "request": "^2.88.2",
+    "uuid": "^8.3.0",
+    "yup": "^0.28.1"
+  }
+}
