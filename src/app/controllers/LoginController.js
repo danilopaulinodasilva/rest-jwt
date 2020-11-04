@@ -1,6 +1,5 @@
-const jwt = require('jsonwebtoken');
-const generateToken = require("../helpers/generateToken");
-
+const Login = require("../models/LoginModel");
+const handleJwt = require("../helpers/handleJwt");
 const refreshTokens = [];
 
 class LoginController {
@@ -14,19 +13,23 @@ class LoginController {
 
         // CHECK IN DATABASE IF USERNAME AND PASSWORD EXISTS
 
-        // if(_) {
+        Login.check(username,password)
+
+        .then((data) => {
+
+            const user = { name: username, password: password };
+
+            const accessToken = handleJwt.access(user); // create access token with user object
+            const refreshToken = handleJwt.refresh(user);  // create refresh token
+            refreshTokens.push(refreshToken); // should armazenate in redis or array
             
-        // } else {
+            return res.status(200).json({ accessToken: accessToken, refreshToken: refreshToken }); // throw back the data
 
-        // }
+        })
 
-        const user = { name: username, password: password };
-
-        const accessToken = generateToken.access(user); // create access token with user object
-        const refreshToken = generateToken.refresh(user);  // create refresh token
-        refreshTokens.push(refreshToken); // should armazenate in redis or array
-        
-        res.json({ accessToken: accessToken, refreshToken: refreshToken }); // throw back the data
+        .catch((err) => {
+            return res.status(401).json({"message":err}); 
+        });
 
     }
 
@@ -37,12 +40,21 @@ class LoginController {
         const refreshToken = req.body.token; // request the token
         if (refreshToken == null) return res.sendStatus(401); // come nothing? 401 unauthorized
         if (!refreshTokens.includes(refreshToken)) return res.sendStatus(403) // not found the access token in white list? 403 forbidden
-        jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
-          if (err) return res.sendStatus(403) // not valid? 403 forbidden
-          const accessToken = generateToken.access({ name: user.name, password: user.password }) // valid, generate a new access token????
-          res.json({ accessToken: accessToken })
+
+        handleJwt.auth(refreshToken,process.env.REFRESH_TOKEN_SECRET)
+
+        .then((data) =>{
+            const accessToken = handleJwt.access({ name: data.name, password: data.password }) // valid, generate a new access token????
+            res.json({ accessToken: accessToken });
+
         })
-        
+
+        .catch((err) => {
+            console.log("token err",err);
+            return res.status(403).json(err);
+
+        });
+
     }
 
     auth (req,res, next) {
@@ -50,10 +62,18 @@ class LoginController {
         const authHeader = req.headers['authorization'];
         const token = authHeader && authHeader.split(' ')[1];
         if (token == null) return res.sendStatus(401);
-      
-        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-          if (err) return res.status(403).json({"msg":"fudeus"});
-          req.user = user; return res.json({"msg":"okey"});
+
+        handleJwt.auth(token,process.env.ACCESS_TOKEN_SECRET)
+
+        .then((data) =>{
+            return res.status(201).send(data);
+
+        })
+
+        .catch((err) => {
+            // console.log("auth err",err)
+            return res.status(403).json(err);
+
         });
 
     }
