@@ -9,7 +9,7 @@ module.exports = {
     refresh: (user) => {
         return jwt.sign(user, process.env.REFRESH_TOKEN_SECRET);  // create refresh token
     },
-
+ 
     auth: (token, secret) => {
 
         return new Promise((resolve,reject) => {

@@ -8,22 +8,20 @@ class Login {
     
     return new Promise((resolve, reject) => {
       
-      // console.log(`SELECT email, password FROM ${table} WHERE email = '${username}' AND password = '${password}'`);
-
-      connection.query(`SELECT email, password FROM ${table} WHERE email = '${username}' AND password = '${password}'`, (err, res) => {
+      connection.query(`SELECT email, password, role FROM ${table} WHERE email = '${username}' AND password = '${password}'`, (err, res) => {
 
           if((err)) {
-            
             console.log(err); 
             reject(err);
           
           } else {
 
-            console.log(res.length); 
             if(res.length >= 1) { 
-              resolve(true); 
+              resolve(res); 
+
             } else {
               reject("Usuário e/ou senha inválidos");
+            
             }
 
           }

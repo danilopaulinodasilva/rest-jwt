@@ -17,7 +17,11 @@ class LoginController {
 
         .then((data) => {
 
-            const user = { name: username, password: password };
+            const username = data[0].email;
+            const password = data[0].password;
+            const role = data[0].role;
+
+            const user = { username: username, password: password, role: role };
 
             const accessToken = handleJwt.access(user); // create access token with user object
             const refreshToken = handleJwt.refresh(user);  // create refresh token
@@ -29,6 +33,7 @@ class LoginController {
 
         .catch((err) => {
             return res.status(401).json({"message":err}); 
+            
         });
 
     }
@@ -44,7 +49,7 @@ class LoginController {
         handleJwt.auth(refreshToken,process.env.REFRESH_TOKEN_SECRET)
 
         .then((data) =>{
-            const accessToken = handleJwt.access({ name: data.name, password: data.password }) // valid, generate a new access token????
+            const accessToken = handleJwt.access({ username: data.email, password: data.password, role: data.role }) // valid, generate a new access token????
             res.json({ accessToken: accessToken });
 
         })
@@ -57,7 +62,7 @@ class LoginController {
 
     }
 
-    auth (req,res, next) {
+    auth (req,res) {
 
         const authHeader = req.headers['authorization'];
         const token = authHeader && authHeader.split(' ')[1];
@@ -66,7 +71,7 @@ class LoginController {
         handleJwt.auth(token,process.env.ACCESS_TOKEN_SECRET)
 
         .then((data) =>{
-            return res.status(201).send(data);
+            return res.status(201).send({ authorized: true, role: data.role });
 
         })
 
